@@ -4,7 +4,7 @@
  */
 window.APP_CONFIG = {
   // Shown top-left in the header and in the browser tab title.
-  companyName: "Shieldient",
+  companyName: "Your Company Name",
 
   // Optional logo shown to the left of the company name.
   // Use a relative path (e.g. "assets/logo.png") or an https:// URL.
