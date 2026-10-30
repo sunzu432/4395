@@ -106,7 +106,7 @@
 
   /* ---------- state ---------- */
 
-  var state = { q: '', filter: '', sort: 'name', grouped: false, selectedId: null };
+  var state = { q: '', filter: '', sort: 'name', grouped: false, selectedKey: null };
   var overrides = {};   // open/closed choices made by clicking chevrons (key -> boolean)
   var lastOpener = null;
 
@@ -131,8 +131,8 @@
     var self = has(c.name, q) || has(c.id, q) || has(c.group, q) || has(c.definition, q);
     var nested = false;
     (c.components || []).forEach(function (k) {
-      var kSelf = has(k.name, q) || has(k.id, q);
-      var sub = (k.subcomponents || []).some(function (s) { return has(s.name, q) || has(s.id, q); });
+      var kSelf = has(k.name, q) || has(k.id, q) || has(k.definition, q);
+      var sub = (k.subcomponents || []).some(function (s) { return has(s.name, q) || has(s.id, q) || has(s.definition, q); });
       if (sub) res.openComps[k.id] = true;
       if (kSelf || sub) nested = true;
     });
@@ -222,36 +222,37 @@
 
   /* ---------- side panel ---------- */
 
+  var panelKicker = h('p', { class: 'panel-kicker' });
   var panelTitle = h('h2', { id: 'panel-title', tabindex: '-1' });
-  var panelId = h('dd');
-  var panelGroup = h('dd');
-  var panelDef = h('dd', { class: 'def' });
-  var closeBtn = h('button', { class: 'panel-close', type: 'button', 'aria-label': 'Close details', onclick: closePanel }, '×');
+  var panelList = h('dl');
+  var closeBtn = h('button', { class: 'panel-close', type: 'button', 'aria-label': 'Close details', onclick: closePanel }, '\u00d7');
   var panel = h('aside', { class: 'panel', id: 'detail-panel', role: 'dialog', 'aria-modal': 'false', 'aria-labelledby': 'panel-title' },
-    closeBtn,
-    panelTitle,
-    h('dl', null,
-      h('dt', { text: 'Concept ID' }), panelId,
-      h('dt', { text: 'Concept Group' }), panelGroup,
-      h('dt', { text: 'Definition' }), panelDef));
+    closeBtn, panelKicker, panelTitle, panelList);
   var scrim = h('div', { class: 'scrim', onclick: closePanel });
   document.body.appendChild(scrim);
   document.body.appendChild(panel);
 
   function markSelected() {
-    Array.prototype.forEach.call(listEl.querySelectorAll('.concept'), function (li) {
-      var on = state.selectedId !== null && li.getAttribute('data-id') === state.selectedId;
-      li.classList.toggle('selected', on);
+    Array.prototype.forEach.call(listEl.querySelectorAll('.selectable'), function (el) {
+      el.classList.toggle('selected', state.selectedKey !== null && el.getAttribute('data-key') === state.selectedKey);
     });
   }
 
-  function openPanel(c, opener) {
-    state.selectedId = c.id;
-    lastOpener = c.id;
-    panelTitle.textContent = c.name;
-    panelId.textContent = c.id;
-    panelGroup.textContent = c.group || '—';
-    panelDef.textContent = c.definition || 'No definition provided.';
+  // info: { key, kicker ('Concept' | 'Component' | 'Subcomponent'), name, id, parent, group, definition }
+  function openPanel(info) {
+    state.selectedKey = info.key;
+    lastOpener = info.key;
+    panelKicker.textContent = info.kicker;
+    panelTitle.textContent = info.name;
+    panelList.textContent = '';
+    var rows = [[info.kicker + ' ID', info.id]];
+    if (info.parent) rows.push(['Part of', info.parent]);
+    rows.push(['Concept Group', info.group || '\u2014']);
+    rows.push(['Definition', info.definition || 'No definition provided.']);
+    rows.forEach(function (r) {
+      panelList.appendChild(h('dt', { text: r[0] }));
+      panelList.appendChild(h('dd', { class: r[0] === 'Definition' ? 'def' : null, text: r[1] }));
+    });
     panel.classList.add('show');
     scrim.classList.add('show');
     document.body.classList.add('panel-open');
@@ -264,11 +265,11 @@
     panel.classList.remove('show');
     scrim.classList.remove('show');
     document.body.classList.remove('panel-open');
-    state.selectedId = null;
+    state.selectedKey = null;
     markSelected();
     var back = null;
     Array.prototype.forEach.call(listEl.querySelectorAll('.name-link'), function (b) {
-      if (b.getAttribute('data-id') === lastOpener) back = b;
+      if (b.getAttribute('data-key') === lastOpener) back = b;
     });
     if (back) back.focus();
   }
@@ -291,13 +292,27 @@
     return btn;
   }
 
-  function renderSubs(c, k, subs, show) {
+  function selCls(key) { return state.selectedKey === key ? ' selected' : ''; }
+
+  function nameButton(key, text, info) {
+    return h('button', {
+      class: 'name-link', type: 'button', 'data-key': key, 'aria-controls': 'detail-panel', text: text,
+      onclick: function () { openPanel(info); }
+    });
+  }
+
+  function renderSubs(c, k, subs) {
     var ul = h('ul', { class: 'subs' });
     ul.appendChild(h('li', { class: 'subhead cols', 'aria-hidden': 'true' },
       h('span', { text: 'Subcomponent Name' }), h('span', { text: 'Subcomponent ID' }), h('span')));
     subs.forEach(function (s) {
-      ul.appendChild(h('li', { class: 'srow cols' },
-        h('span', { class: 'cell', text: s.name }),
+      var key = 's:' + c.id + '/' + k.id + '/' + s.id;
+      var btn = nameButton(key, s.name, {
+        key: key, kicker: 'Subcomponent', name: s.name, id: s.id,
+        parent: c.name + ' \u203a ' + k.name, group: c.group, definition: s.definition
+      });
+      ul.appendChild(h('li', { class: 'srow selectable cols' + selCls(key), 'data-key': key },
+        h('span', { class: 'cell' }, btn),
         h('span', { class: 'cell mono', 'data-label': 'ID', text: s.id }),
         h('span')));
     });
@@ -317,8 +332,12 @@
           overrides[key] = now; subsEl.hidden = !now; li.classList.toggle('open', now);
         })
       : h('span', { class: 'chev-spacer' });
-    li.appendChild(h('div', { class: 'crow cols' },
-      h('div', { class: 'main' }, toggle, h('span', { class: 'cname', text: k.name })),
+    var btn = nameButton(key, k.name, {
+      key: key, kicker: 'Component', name: k.name, id: k.id,
+      parent: c.name, group: c.group, definition: k.definition
+    });
+    li.appendChild(h('div', { class: 'crow selectable cols' + selCls(key), 'data-key': key },
+      h('div', { class: 'main' }, toggle, btn),
       h('span', { class: 'cell mono', 'data-label': 'ID', text: k.id }),
       h('span')));
     if (subsEl) li.appendChild(subsEl);
@@ -331,7 +350,7 @@
     var key = 'c:' + c.id;
     var open = comps.length > 0 && isOpen(key, it.m.openConcept);
     var detailId = uid('detail');
-    var li = h('li', { class: 'concept' + (open ? ' open' : '') + (state.selectedId === c.id ? ' selected' : ''), 'data-id': c.id });
+    var li = h('li', { class: 'concept' + (open ? ' open' : ''), 'data-id': c.id });
 
     var detail = null;
     if (comps.length) {
@@ -350,15 +369,15 @@
         })
       : h('span', { class: 'chev-spacer' });
 
-    var nameBtn = h('button', {
-      class: 'name-link', type: 'button', 'data-id': c.id, 'aria-controls': 'detail-panel', text: c.name,
-      onclick: function () { openPanel(c, nameBtn); }
+    var btn = nameButton(key, c.name, {
+      key: key, kicker: 'Concept', name: c.name, id: c.id,
+      parent: '', group: c.group, definition: c.definition
     });
 
-    li.appendChild(h('div', { class: 'row cols' },
-      h('div', { class: 'main' }, toggle, nameBtn),
+    li.appendChild(h('div', { class: 'row selectable cols' + selCls(key), 'data-key': key },
+      h('div', { class: 'main' }, toggle, btn),
       h('span', { class: 'cell mono', 'data-label': 'ID', text: c.id }),
-      h('span', { class: 'cell', 'data-label': 'Group', text: c.group || '—' })));
+      h('span', { class: 'cell', 'data-label': 'Group', text: c.group || '\u2014' })));
     if (detail) li.appendChild(detail);
     return li;
   }
