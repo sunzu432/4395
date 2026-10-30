@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Questionnaire</title>
+  <title>Concepts</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -11,24 +11,13 @@
     <div class="brand" id="brand"></div>
   </header>
 
-  <main class="container">
-    <section class="card">
-      <h1 id="page-title">Questionnaire</h1>
-
-      <!--
-        PASTE THE SURVEYMONKEY EMBED CODE BELOW, replacing this comment and the
-        placeholder div. In SurveyMonkey: Collect Responses -> Website collector
-        -> "Embedded survey" -> Copy Code. Paste it exactly as given (do not edit
-        it) at the spot where the survey should appear.
-      -->
-      <div id="sm-placeholder" class="note">
-        SurveyMonkey embed code has not been added yet. See README, section
-        "Add the SurveyMonkey survey".
-      </div>
-    </section>
+  <main class="container" id="app">
+    <noscript>This page requires JavaScript to run.</noscript>
   </main>
 
+  <!-- Order matters: settings -> content -> page logic -->
   <script src="js/config.js"></script>
-  <script src="js/brand.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>
