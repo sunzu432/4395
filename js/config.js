@@ -11,8 +11,9 @@ window.APP_CONFIG = {
   // Leave as "" for text only.
   logoUrl: "",
 
-  // SurveyMonkey page only (surveymonkey.html): heading shown above the embedded survey.
-  surveyTitle: "",
+  // The "Text" and "subtext" lines at the top of the page. Placeholders for now.
+  headline: "Heading text goes here",
+  subtext: "Supporting subtext goes here.",
 
   // Optional accent color (hex only, e.g. "#0b5fff").
   accentColor: "#0b5fff"
