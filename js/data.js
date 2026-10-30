@@ -84,6 +84,15 @@ window.CONCEPTS = [
     id: "C5",
     name: "Concept 5",
     group: "Group 5",
-    definition: "Placeholder definition for Concept 5. Replace this with the real definition."
+    definition: "Placeholder definition for Concept 5. Replace this with the real definition.",
+    components: [
+      {
+        id: "C5-A",
+        name: "Component A",
+        subcomponents: [
+          { id: "C5-A-1", name: "Subcomponent 1" }
+        ]
+      }
+    ]
   }
 ];
