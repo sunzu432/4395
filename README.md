@@ -1,32 +1,25 @@
-# Questionnaire site
+# Concept Browser
 
-A branded web page that hosts an embedded SurveyMonkey survey. The company name appears in the top-left banner. All questions, logic, scoring and responses live in SurveyMonkey; this page only wraps it.
+A static web page (plain HTML, CSS and JavaScript, no build step) that lists concepts in a searchable table. Each concept expands to show its components and subcomponents, and clicking a concept's name opens a side panel with its ID, group and definition.
 
-## Edit the company name, logo, heading
+## Where to edit what
 
-`js/config.js`:
+| To change | Edit |
+|---|---|
+| Company name (top-left banner), logo, heading text, subtext | `js/config.js` |
+| The concepts, components, subcomponents and definitions | `js/data.js` |
+| Banner color, company name size, colors, spacing | `css/styles.css` (variables at the top) |
 
-```js
-companyName: "Your Company Name",  // top-left banner and browser tab
-logoUrl: "",                        // optional, e.g. "assets/logo.png" (use a white/transparent logo; banner is dark blue)
-surveyTitle: "",                    // optional heading above the survey
-accentColor: "#0b5fff"
-```
+Everything in `js/data.js` is placeholder content right now. The file has comments explaining the structure. If something in it is broken (a missing name, a duplicate ID), the page shows a plain list of the problems instead of failing silently.
 
-## Edit colors and sizes
+## What the page does
 
-`css/styles.css`:
-
-- Banner color and text: `--banner-bg`, `--banner-text` (top of file)
-- Company name size: `.brand-name { font-size: ... }`
-
-## Add the SurveyMonkey survey
-
-1. In SurveyMonkey: Collect Responses -> Website collector -> Embedded survey -> Copy Code (see [SurveyMonkey help](https://help.surveymonkey.com/en/surveymonkey/send/website-collector/)).
-2. Open `index.html` and paste the code in place of the `<div id="sm-placeholder">` block. Do not edit the code.
-3. Commit and push. Later changes to the survey itself appear on refresh without touching this page.
-
-Notes from SurveyMonkey's docs: embedded surveys have no survey end page and no instant results; custom thank-you pages show SurveyMonkey branding. Test on the deployed URL, since the embed may not work from a local file.
+- **Expand:** the chevron next to a concept shows its components. The chevron next to a component shows its subcomponents.
+- **Side panel:** click a concept name. Esc or the X closes it.
+- **Group:** groups rows under their Concept Group heading.
+- **Filter:** show only one Concept Group.
+- **Sort:** by name (A-Z or Z-A), Concept ID, or Concept Group. Numbers sort naturally ("Concept 2" before "Concept 10").
+- **Search:** matches names, IDs, groups and definitions, including components and subcomponents. A match inside a concept opens that concept automatically.
 
 ## Run locally
 
@@ -34,4 +27,4 @@ Open `index.html` in a browser, or run `python3 -m http.server 8080` in this fol
 
 ## Deploy (GitHub Pages)
 
-Repo Settings -> Pages -> Source: GitHub Actions. The workflow deploys on every push to `main`. Private repos need a paid GitHub plan for Pages, and the published site may be publicly reachable.
+Repo Settings -> Pages -> Source: GitHub Actions. The workflow in `.github/workflows/pages.yml` publishes the site on every push to `main`. Private repos need a paid GitHub plan for Pages, and a Pages site may be publicly reachable even when the repo is private, so do not publish confidential content this way unless you have checked the access settings.
