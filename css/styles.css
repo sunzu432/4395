@@ -12,7 +12,7 @@
   /* Top banner (company name bar) */
   --banner-bg: #041333;
   --banner-text: #ffffff;
-  --brand-name-size: 1.5rem;   /* company name size: change this to make it bigger/smaller */
+  --brand-name-size: 2rem;   /* company name size: change this to make it bigger/smaller */
 
   /* Column widths shared by every level of the list so IDs line up */
   --cols: minmax(0, 1fr) 130px 180px;
